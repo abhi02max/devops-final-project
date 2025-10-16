@@ -1,0 +1,52 @@
+---
+- name: Install and Configure Monitoring Stack
+  hosts: localhost
+  connection: local
+  become: yes
+
+  tasks:
+    - name: Download Prometheus
+      get_url:
+        url: "https://github.com/prometheus/prometheus/releases/download/v2.52.0/prometheus-2.52.0.linux-amd64.tar.gz"
+        dest: "/tmp/prometheus.tar.gz"
+
+    - name: Unarchive Prometheus
+      unarchive:
+        src: "/tmp/prometheus.tar.gz"
+        dest: "/opt/"
+        remote_src: yes
+        creates: "/opt/prometheus-2.52.0.linux-amd64/prometheus"
+
+    - name: Create Prometheus systemd service file
+      copy:
+        dest: "/etc/systemd/system/prometheus.service"
+        content: |
+          [Unit]
+          Description=Prometheus Time Series Collection and Processing Server
+          Wants=network-online.target
+          After=network-online.target
+
+          [Service]
+          User=root
+          ExecStart=/opt/prometheus-2.52.0.linux-amd64/prometheus \
+            --config.file=/opt/prometheus-2.52.0.linux-amd64/prometheus.yml \
+            --storage.tsdb.path=/var/lib/prometheus/
+
+          [Install]
+          WantedBy=multi-user.target
+
+    - name: Run Grafana container using Docker
+      docker_container:
+        name: grafana
+        image: grafana/grafana
+        state: started
+        restart_policy: always
+        ports:
+          - "3000:3000"
+
+    - name: Reload systemd and start Prometheus
+      systemd:
+        name: prometheus
+        daemon_reload: yes
+        state: started
+        enabled: yes

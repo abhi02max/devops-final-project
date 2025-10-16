@@ -11,9 +11,12 @@ spec:
     metadata:
       labels:
         app: quote-app
+      annotations:
+        prometheus.io/scrape: 'true' # Tells Prometheus: "Monitor this pod!"
+        prometheus.io/port: '5000'   # Tells Prometheus: "Find the metrics on this port."
     spec:
       containers:
       - name: quote-app-container
-        image: IMAGE_PLACEHOLDER # Jenkins will replace this!
+        image: IMAGE_PLACEHOLDER # Jenkins will still replace this!
         ports:
         - containerPort: 5000
