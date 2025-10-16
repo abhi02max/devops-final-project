@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: quote-app-deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: quote-app
+  template:
+    metadata:
+      labels:
+        app: quote-app
+    spec:
+      containers:
+      - name: quote-app-container
+        image: IMAGE_PLACEHOLDER # Jenkins will replace this!
+        ports:
+        - containerPort: 5000
